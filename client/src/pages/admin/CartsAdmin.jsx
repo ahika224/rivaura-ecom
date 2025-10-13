@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { authFetch } from "../../utils/authFetch";
 
 const CartsAdmin = () => {
   const [carts, setCarts] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/cart")
+    authFetch("/api/cart")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load carts");
         return res.json();

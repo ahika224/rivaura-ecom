@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, ArrowLeft, User, MessageSquare, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { authFetch } from '../utils/authFetch';
 
 const Contact = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const Contact = () => {
     if (userId) {
       const fetchCart = async () => {
         try {
-          const res = await fetch(`/api/cart/${userId}`);
+          const res = await authFetch(`/api/cart/${userId}`);
           if (res.ok) {
             const data = await res.json();
             setCartItems(data.productIds || []);

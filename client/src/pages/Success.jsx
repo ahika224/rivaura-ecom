@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Printer, Home, Copy, Check } from "lucide-react";
 import Confetti from "react-confetti";
+import { authFetch } from "../utils/authFetch";
 
 const Success = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Success = () => {
     setInvoice(storedInvoice);
 
     if (storedInvoice.totalAmount > 50000) {
-      fetch("/api/coupons")
+      authFetch("/api/coupons")
         .then((response) => response.json())
         .then((data) => {
           const randomCoupon = data[Math.floor(Math.random() * data.length)];
@@ -65,7 +66,7 @@ const Success = () => {
       currency: "INR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).replace("₹", "₹");
+    }).replace("$", "$");
   };
 
   const printableHTML = `

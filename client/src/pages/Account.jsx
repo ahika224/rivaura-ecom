@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Edit3, Save, X, ArrowLeft, LogOut } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { authFetch } from '../utils/authFetch';
 
 const Account = () => {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ const Account = () => {
       }
 
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
+        const res = await authFetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
         if (res.ok) {
           const data = await res.json();
           setSearchResults(data.slice(0, 5));
@@ -97,7 +98,7 @@ const Account = () => {
     }
 
     try {
-      const res = await fetch(`/api/auth/user?email=${email}`, {
+      const res = await authFetch(`/api/auth/user?email=${email}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim() })

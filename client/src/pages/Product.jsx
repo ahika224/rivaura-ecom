@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { authFetch } from "../utils/authFetch";
 
 const Product = () => {
   const { id } = useParams();
@@ -26,7 +27,7 @@ const Product = () => {
     if (userId) {
       const fetchCart = async () => {
         try {
-          const res = await fetch(`/api/cart/${userId}`);
+          const res = await authFetch(`/api/cart/${userId}`);
           if (res.ok) {
             const data = await res.json();
             setCartItems(data.productIds || []);
@@ -42,7 +43,7 @@ const Product = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${id}`);
+        const res = await authFetch(`/api/products/${id}`);
         if (!res.ok) {
           setProduct(null);
           setToastMsg("Failed to load product. Please try again.");
@@ -54,7 +55,7 @@ const Product = () => {
         setSelectedGrams(data.weight || 1);
 
         // Fetch similar products by category
-        const similarRes = await fetch(`/api/products?category=${encodeURIComponent(data.category)}`);
+        const similarRes = await authFetch(`/api/products?category=${encodeURIComponent(data.category)}`);
         if (similarRes.ok) {
           const similarData = await similarRes.json();
           const filtered = similarData.filter(p => (p.id || p._id) !== (data.id || data._id));
@@ -97,7 +98,7 @@ const Product = () => {
         return;
       }
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
+        const res = await authFetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
         if (res.ok) {
           const data = await res.json();
           setSearchResults(data.slice(0, 5));
@@ -127,7 +128,7 @@ const Product = () => {
     const finalPrice = product.price * grams;
 
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `/api/cart/add?userId=${encodeURIComponent(userId)}&productId=${productId}&quantity=1&grams=${grams}&finalPrice=${finalPrice}`,
         {
           method: "POST",
@@ -262,11 +263,11 @@ const Product = () => {
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-3">
                     <span className="text-2xl font-medium text-gray-900">
-                      ₹{(product.price * selectedGrams).toLocaleString()}
+                      ${(product.price * selectedGrams).toLocaleString()}
                     </span>
                     {product.originalPrice && product.originalPrice > product.price && (
                       <span className="text-sm text-gray-500 line-through">
-                        ₹{(product.originalPrice * selectedGrams).toLocaleString()}
+                        ${(product.originalPrice * selectedGrams).toLocaleString()}
                       </span>
                     )}
                   </div>
@@ -287,7 +288,7 @@ const Product = () => {
               </div>
               {product.originalPrice && product.originalPrice > product.price && (
                 <span className="bg-red-100 text-red-600 px-2 py-1 text-xs font-medium rounded">
-                  SAVE ₹{((product.originalPrice - product.price) * selectedGrams).toLocaleString()}
+                  SAVE ${((product.originalPrice - product.price) * selectedGrams).toLocaleString()}
                 </span>
               )}
             </div>
@@ -302,7 +303,7 @@ const Product = () => {
               Add to Cart
             </button>
             <p className="text-xs text-gray-500 mt-2">
-              You are adding {selectedGrams} gram(s) for a total of ₹{(product.price * selectedGrams).toLocaleString()}.
+              You are adding {selectedGrams} gram(s) for a total of ${(product.price * selectedGrams).toLocaleString()}.
             </p>
           </div>
         </div>
@@ -359,14 +360,14 @@ const Product = () => {
                     </h3>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <span className="text-xl font-medium text-gray-900">₹{p.price?.toLocaleString()}</span>
+                        <span className="text-xl font-medium text-gray-900">${p.price?.toLocaleString()}</span>
                         {p.originalPrice && p.originalPrice > p.price && (
-                          <span className="text-sm text-gray-500 line-through">₹{p.originalPrice.toLocaleString()}</span>
+                          <span className="text-sm text-gray-500 line-through">${p.originalPrice.toLocaleString()}</span>
                         )}
                       </div>
                       {p.originalPrice && p.originalPrice > p.price && (
                         <span className="bg-red-100 text-red-600 px-2 py-1 text-xs font-medium rounded">
-                          SAVE ₹{(p.originalPrice - p.price).toLocaleString()}
+                          SAVE ${(p.originalPrice - p.price).toLocaleString()}
                         </span>
                       )}
                     </div>

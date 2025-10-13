@@ -3,24 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, X } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { useAuth } from '../../utils/AuthContext';
+import AuthService from '../../utils/AuthService';
+import { authFetch } from '../../utils/authFetch';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [toastMsg, setToastMsg] = useState('');
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [cartItems, setCartItems] = useState([]); // Added for cart badge
   const navigate = useNavigate();
   const searchRef = useRef(null);
-
+  const { setAuth } = useAuth();
   useEffect(() => {
     const userId = localStorage.getItem("userEmail");
     if (userId) {
       const fetchCart = async () => {
         try {
-          const res = await fetch(`/api/cart/${userId}`);
+          const res = await authFetch(`/api/cart/${userId}`);
           if (res.ok) {
             const data = await res.json();
             setCartItems(data.productIds || []);
@@ -57,7 +61,7 @@ const Login = () => {
         return;
       }
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
+        const res = await authFetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
         if (res.ok) {
           const data = await res.json();
           setSearchResults(data.slice(0, 5));
@@ -74,21 +78,25 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) throw new Error('Login failed');
-      localStorage.setItem('userEmail', email);
+  try {
+    const response = await AuthService.login(email, password);
+    if (response) {
+      setAuth(true);
       navigate('/');
-    } catch (err) {
-      setToastMsg('Invalid credentials. Please try again.');
+    } else {
+      throw new Error('Login failed');
     }
+  } catch (err) {
+    setToastMsg('Login failed. Please check your credentials.');
+    setAuth(false);
+    //console.error('Login error:', err);
+  }
+
+    
+   
   };
 
+ 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setSearchOpen(false);

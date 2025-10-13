@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Mail, X } from "lucide-react";
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { authFetch } from "../../utils/authFetch";
+import  AuthService from "../../utils/AuthService";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [password, setPassword] = useState("");
   const [toastMsg, setToastMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -21,7 +23,7 @@ const ForgotPassword = () => {
     if (userId) {
       const fetchCart = async () => {
         try {
-          const res = await fetch(`/api/cart/${userId}`);
+          const res = await authFetch(`/api/cart/${userId}`);
           if (res.ok) {
             const data = await res.json();
             setCartItems(data.productIds || []);
@@ -58,7 +60,7 @@ const ForgotPassword = () => {
         return;
       }
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
+        const res = await authFetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
         if (res.ok) {
           const data = await res.json();
           setSearchResults(data.slice(0, 5));
@@ -79,11 +81,7 @@ const ForgotPassword = () => {
     setIsSuccess(false);
 
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, newPassword }),
-      });
+      const res = await AuthService.updatePassword(email, password);
 
       const data = await res.json();
 
@@ -91,7 +89,7 @@ const ForgotPassword = () => {
         setToastMsg(data.message || "Password updated successfully. Please log in.");
         setIsSuccess(true);
         setEmail("");
-        setNewPassword("");
+        setPassword("");
         setTimeout(() => navigate("/login"), 2000);
       } else {
         setToastMsg(data.error || "Something went wrong. Please try again.");
@@ -159,8 +157,8 @@ const ForgotPassword = () => {
                   type="password"
                   placeholder="New password"
                   required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] text-gray-700 transition-all duration-300"
                 />
                 <svg

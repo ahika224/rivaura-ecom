@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { authFetch } from '../utils/authFetch';
 
 const JewelryChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,7 +35,7 @@ const JewelryChatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await authFetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

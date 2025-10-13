@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Gem, Sparkles, ShieldCheck } from 'lucide-react';
 import Footer from '../components/Footer';
+import { authFetch } from '../utils/authFetch';
 
 const Checkout = () => {
   const [summary, setSummary] = useState(null);
-  const userId = localStorage.getItem('userEmail');
+  const userId = localStorage.getItem("userEmail");
   const navigate = useNavigate();
 
   const jewelryQuotes = [
@@ -24,7 +25,7 @@ const Checkout = () => {
       return;
     }
 
-    fetch(`/api/checkout/${userId}`)
+    authFetch(`/api/checkout/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (!data.items || data.items.length === 0) {
@@ -132,13 +133,13 @@ const Checkout = () => {
                         <span className="text-sm text-gray-500">•</span>
                         <span className="text-sm text-gray-500">{item.grams}g</span>
                         <span className="text-sm text-gray-500">•</span>
-                        <span className="text-sm text-gray-500">₹{item.finalPrice?.toLocaleString()}/g</span>
+                        <span className="text-sm text-gray-500">${item.finalPrice?.toLocaleString()}/g</span>
                         <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">In Stock</span>
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-medium text-amber-600">₹{item.itemTotal.toLocaleString()}</p>
+                    <p className="text-lg font-medium text-amber-600">${item.itemTotal.toLocaleString()}</p>
                   </div>
                 </div>
               ))}
@@ -147,7 +148,7 @@ const Checkout = () => {
             <div className="mt-8 pt-6 border-t border-gray-100">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-gray-600">Subtotal</span>
-                <span className="text-gray-800">₹{summary.totalAmount.toLocaleString()}</span>
+                <span className="text-gray-800">${summary.totalAmount.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center mb-3">
                 <span className="text-gray-600">Shipping</span>
@@ -159,7 +160,7 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                 <h3 className="text-xl font-medium text-gray-900">Total</h3>
-                <p className="text-2xl font-medium text-amber-600">₹{summary.totalAmount.toLocaleString()}</p>
+                <p className="text-2xl font-medium text-amber-600">${summary.totalAmount.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -175,11 +176,11 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total:</span>
-                  <span className="text-gray-800 font-medium">₹{summary.totalAmount.toLocaleString()}</span>
+                  <span className="text-gray-800 font-medium">${summary.totalAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-100 pt-4 mt-4">
                   <span className="text-gray-600">Amount to pay:</span>
-                  <span className="text-amber-600 font-medium">₹{summary.totalAmount.toLocaleString()}</span>
+                  <span className="text-amber-600 font-medium">${summary.totalAmount.toLocaleString()}</span>
                 </div>
               </div>
 

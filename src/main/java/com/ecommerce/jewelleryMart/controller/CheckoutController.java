@@ -50,20 +50,20 @@ public class CheckoutController {
         }
 
         Cart cart = optionalCart.get();
-        List<String> productIds = cart.getProductIds();
+        List<Long> productIds = cart.getProductIds();
         List<Integer> quantities = cart.getQuantities();
         List<Double> grams = cart.getGrams();
         List<Double> finalPrices = cart.getFinalPrices();
 
         List<Product> products = productRepository.findAllById(productIds);
-        Map<String, Product> productMap = products.stream()
+        Map<Long, Product> productMap = products.stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
 
         List<Map<String, Object>> itemsSummary = new ArrayList<>();
         double totalAmount = 0;
 
         for (int i = 0; i < productIds.size(); i++) {
-            String productId = productIds.get(i);
+            Long productId = productIds.get(i);
             int qty = quantities.get(i);
             double gram = grams.get(i);
             double finalPrice = finalPrices.get(i);
@@ -117,20 +117,20 @@ public class CheckoutController {
         }
 
         Cart cart = optionalCart.get();
-        List<String> productIds = cart.getProductIds();
+        List<Long> productIds = cart.getProductIds();
         List<Integer> quantities = cart.getQuantities();
         List<Double> grams = cart.getGrams(); // Get grams from cart
         List<Double> finalPrices = cart.getFinalPrices(); // Get final prices from cart
         List<Product> productsInCart = productRepository.findAllById(productIds);
 
-        Map<String, Product> productDetailsMap = productsInCart.stream()
+        Map<Long, Product> productDetailsMap = productsInCart.stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
 
         double totalAmount = 0;
         List<Map<String, Object>> invoiceItems = new ArrayList<>();
 
         for (int i = 0; i < productIds.size(); i++) {
-            String productId = productIds.get(i);
+            Long productId = productIds.get(i);
             int quantity = quantities.get(i);
             double gram = grams.get(i); // Get gram for this item
             double finalPrice = finalPrices.get(i); // Get final price for this item

@@ -26,7 +26,7 @@ import Category from './pages/Category';
 
 const App = () => {
   return (
-    <Router>
+  
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -50,13 +50,15 @@ const App = () => {
           </Route>
 
           <Route path="/category/:categoryName" element={<Category />} />
+           <Route path="/collections/:categoryName" element={<Collections />} />
+
           <Route path="/collections" element={< Collections/>} />
           <Route path="/forgot-password" element={<ForgetPassword />} />
           <Route path="/contact" element={<Contact />} />
 
         </Routes>
      
-    </Router>
+ 
   );
 };
 

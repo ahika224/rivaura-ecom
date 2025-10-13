@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Heart, Search, Menu, X, Mail, Phone, User } from 'lucide-react';
-
+import { authFetch } from '../../utils/authFetch';
+import AuthService from '../../utils/AuthService';
 const Signup = () => {
   const [email, setEmail] = useState('');
+   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -57,11 +59,9 @@ const Signup = () => {
     };
     loadSearchResults();
   }, [searchInput]);
-
-  useEffect(() => {
-    const fetchCart = async () => {
+const fetchCart = async () => {
       try {
-        const res = await fetch(`/api/cart/${email}`);
+        const res = await authFetch(`/api/cart/${email}`);
         if (!res.ok) return;
         const data = await res.json();
         setCartItems(data.productIds || []);
@@ -69,8 +69,10 @@ const Signup = () => {
         console.error('Error fetching cart:', err);
       }
     };
+  useEffect(() => {
+    
     fetchCart();
-  }, [email]);
+  }, []);
 
   const handleProfilePicChange = (e) => {
     const url = e.target.value;
@@ -108,11 +110,7 @@ const Signup = () => {
     }
 
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, username, profilePic }),
-      });
+      const res = await AuthService.register(email, password, username, profilePic, phone);
 
       const data = await res.json();
 
@@ -226,7 +224,7 @@ const Signup = () => {
                                     <div>
                                       <p className="text-sm font-light text-gray-900">{product.name}</p>
                                       <p className="text-xs text-gray-500">{product.category}</p>
-                                      <p className="text-sm font-medium text-gray-900">₹{product.price?.toLocaleString()}</p>
+                                      <p className="text-sm font-medium text-gray-900">${product.price?.toLocaleString()}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -317,6 +315,23 @@ const Signup = () => {
                 <Mail className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
               </div>
               <div className="relative">
+
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] text-gray-700 transition-all duration-300"
+                  name="phone"
+                  value={phone}
+                   onChange={(e) => setPhone(e.target.value)}
+                  required
+                  placeholder="Mobile Number"
+                  maxLength={10}
+                  minLength={10}
+                  aria-label="Mobile Number"
+                />
+                                <Phone className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
+
+                </div>
+              <div className="relative">
                 <input
                   type="password"
                   value={password}
@@ -364,31 +379,7 @@ const Signup = () => {
                   />
                 </svg>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture URL (Optional)</label>
-                <input
-                  type="text"
-                  value={profilePic}
-                  onChange={handleProfilePicChange}
-                  placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] text-gray-700 transition-all duration-300"
-                  aria-label="Profile Picture URL"
-                />
-                {profilePicPreview && (
-                  <div className="mt-4">
-                    <img
-                      src={profilePicPreview}
-                      alt="Profile Preview"
-                      className="w-24 h-24 object-cover rounded-full border border-gray-200"
-                      onError={() => {
-                        setToastMsg('Invalid image URL. Please enter a valid image URL.');
-                        setIsSuccess(false);
-                        setProfilePicPreview('');
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
+             
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 rounded-xl font-medium tracking-wider hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"

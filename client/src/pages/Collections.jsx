@@ -2,11 +2,15 @@ import React, { useEffect, useState, useRef } from "react";
 import { Star, X, Search } from "lucide-react";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { authFetch } from "../utils/authFetch";
+import { useParams } from "react-router-dom";
 
 const Collections = () => {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("");
+    const [allCategories, setAllCategories] = useState([]);
+        const [allMetalTypes, setAllMetalTypes] = useState([]);
   const [category, setCategory] = useState("");
   const [metal, setMetal] = useState("");
   const [priceRange, setPriceRange] = useState("");
@@ -18,13 +22,55 @@ const Collections = () => {
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const searchInputRef = useRef(null);
+  const { categoryName } = useParams();
+   useEffect(() => {
+      authFetch(`/api/products?category=${categoryName}`)
+        .then(res => res.json())
+        .then(data => setProducts(data))
+        .catch(err => console.error(err));
+    }, [categoryName]);
+const getAllCategories = async () => {  
+
+    try {     
+      const res = await authFetch('/api/products/categories');  
+      if (res.ok) {     
+        const data = await res.json();
+        setAllCategories(data);
+      } else {  
+        throw new Error('Failed to fetch categories');
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setAllCategories([]);
+
+    }
+
+  };
+
+  const getAllMetalTypes = async () => {  
+
+    try {     
+      const res = await authFetch(`/api/products/metalTypes/${category}`);  
+      if (res.ok) {     
+        const data = await res.json();
+        setAllMetalTypes(data);
+      } else {  
+        throw new Error('Failed to fetch categories');
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setAllMetalTypes([]);
+
+    }
+
+  };
 
   useEffect(() => {
     const userId = localStorage.getItem("userEmail");
     if (userId) {
       const fetchCart = async () => {
         try {
-          const res = await fetch(`/api/cart/${userId}`);
+          const res = await authFetch(`/api/cart/${userId}`);
           if (res.ok) {
             const data = await res.json();
             setCartItems(data.productIds || []);
@@ -39,6 +85,8 @@ const Collections = () => {
 
   useEffect(() => {
     loadProducts();
+    getAllCategories();
+    getAllMetalTypes();
   }, [search, sort, category, metal, priceRange, weightRange]);
 
   useEffect(() => {
@@ -55,7 +103,7 @@ const Collections = () => {
         return;
       }
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
+        const res = await authFetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
         if (res.ok) {
           const data = await res.json();
           setSearchResults(data.slice(0, 5));
@@ -93,7 +141,7 @@ const Collections = () => {
 
     try {
       setLoading(true);
-      const res = await fetch(url);
+      const res = await authFetch(url);
       if (res.ok) {
         let data = await res.json();
 
@@ -141,7 +189,7 @@ const Collections = () => {
     }
 
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `/api/cart/add?userId=${encodeURIComponent(userId)}&productId=${product.id || product._id}&quantity=1&grams=${product.grams || 1}&finalPrice=${product.price}`,
         {
           method: "POST",
@@ -255,41 +303,50 @@ const Collections = () => {
             <option value="weight-asc">Weight: Low to High</option>
             <option value="weight-desc">Weight: High to Low</option>
           </select>
-          <select
+ <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] text-gray-700"
-          >
-            <option value="">All Categories</option>
-            <option value="rings">Rings</option>
-            <option value="necklaces">Necklaces</option>
-            <option value="bangles">Bangles</option>
-            <option value="earrings">Earrings</option>
-          </select>
-          <select
+          >      <option value="">All Categories</option>
+
+{allCategories.map((category,index) => {
+  return (
+    <option key={index} value={category}   >
+      {category}
+    </option>
+  );
+})}
+</select>
+
+  <select
             value={metal}
             onChange={(e) => setMetal(e.target.value)}
             className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] text-gray-700"
           >
             <option value="">All Metals</option>
-            <option value="gold">Gold</option>
-            <option value="silver">Silver</option>
-            <option value="platinum">Platinum</option>
-            <option value="diamond">Diamond</option>
-            <option value="rose-gold">Rose Gold</option>
-          </select>
+
+{allMetalTypes.map((metalTypes,index) => {
+  return (
+    <option key={index} value={metalTypes}   >
+      {metalTypes}
+    </option>
+  );
+})}
+</select>
+     
+        
           <select
             value={priceRange}
             onChange={(e) => setPriceRange(e.target.value)}
             className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EBD6FB] text-gray-700"
           >
             <option value="">All Prices</option>
-            <option value="0-5000">₹0 - ₹5,000</option>
-            <option value="5000-10000">₹5,000 - ₹10,000</option>
-            <option value="10000-20000">₹10,000 - ₹20,000</option>
-            <option value="20000-50000">₹20,000 - ₹50,000</option>
-            <option value="50000-100000">₹50,000 - ₹1,00,000</option>
-            <option value="100000-999999">₹1,00,000+</option>
+            <option value="0-5000">$0 - $5,000</option>
+            <option value="5000-10000">$5,000 - $10,000</option>
+            <option value="10000-20000">$10,000 - $20,000</option>
+            <option value="20000-50000">$20,000 - $50,000</option>
+            <option value="50000-100000">$50,000 - $1,00,000</option>
+            <option value="100000-999999">$1,00,000+</option>
           </select>
           <select
             value={weightRange}
@@ -377,18 +434,18 @@ const Collections = () => {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
                                   <span className="text-xl font-medium text-gray-900">
-                                    ₹{product.price?.toLocaleString()}
+                                    ${product.price?.toLocaleString()}
                                     <span className="text-xs ml-2 text-gray-500">per gram</span>
                                   </span>
                                   {product.originalPrice && product.originalPrice > product.price && (
                                     <span className="text-sm text-gray-500 line-through">
-                                      ₹{product.originalPrice.toLocaleString()}
+                                      ${product.originalPrice.toLocaleString()}
                                     </span>
                                   )}
                                 </div>
                                 {product.originalPrice && product.originalPrice > product.price && (
                                   <span className="bg-red-100 text-red-600 px-2 py-1 text-xs font-medium rounded">
-                                    SAVE ₹{(product.originalPrice - product.price).toLocaleString()}
+                                    SAVE ${(product.originalPrice - product.price).toLocaleString()}
                                   </span>
                                 )}
                               </div>

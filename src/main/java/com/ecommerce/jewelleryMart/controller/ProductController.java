@@ -2,23 +2,32 @@ package com.ecommerce.jewelleryMart.controller;
 
 import com.ecommerce.jewelleryMart.model.Product;
 import com.ecommerce.jewelleryMart.repository.ProductRepository;
+import com.ecommerce.jewelleryMart.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.ecommerce.jewelleryMart.constant.Constant.PHOTO_DIRECTORY_PRODUCT;
+import static org.springframework.http.MediaType.IMAGE_JPEG_VALUE;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
 @RestController
 @RequestMapping("/api/products")
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ProductController {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductService productService;
+
 
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts(
@@ -27,74 +36,55 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String metalType
     ) {
-        List<Product> products = (search != null && !search.isEmpty())
-                ? productRepository.findByNameContainingIgnoreCase(search)
-                : productRepository.findAll();
-
-        if (category != null && !category.isEmpty()) {
-            products = products.stream()
-                    .filter(p -> p.getCategory() != null && p.getCategory().equalsIgnoreCase(category))
-                    .collect(Collectors.toList());
-        }
-
-        if (metalType != null && !metalType.isEmpty()) {
-            products = products.stream()
-                    .filter(p -> p.getMetalType() != null && p.getMetalType().equalsIgnoreCase(metalType))
-                    .collect(Collectors.toList());
-        }
-
-        if (sort != null && !sort.isEmpty()) {
-            switch (sort) {
-                case "priceLowToHigh":
-                    products.sort(Comparator.comparingDouble(Product::getPrice));
-                    break;
-                case "priceHighToLow":
-                    products.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
-                    break;
-                case "nameAsc":
-                    products.sort(Comparator.comparing(Product::getName, String.CASE_INSENSITIVE_ORDER));
-                    break;
-                case "nameDesc":
-                    products.sort(Comparator.comparing(Product::getName, String.CASE_INSENSITIVE_ORDER).reversed());
-                    break;
-                default:
-                    break;
-            }
-        }
+        List<Product> products = productService.getProductList(search, sort, category, metalType);
 
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
+
+
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable String id) {
-        Optional<Product> product = productRepository.findById(id);
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        Optional<Product> product = productService.getByProductId(id);
         return product.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @GetMapping("/metalTypes/{category}")
+    public ResponseEntity<List<String>> getAllMetalTypes(@PathVariable String category) {
+        List<String> metalTypes = productService.getAllMetalTypes( category);
+        if(metalTypes.isEmpty()){
+            return ResponseEntity.badRequest().body(Collections.singletonList("No Metal Types"));
+        }
+        else {
+            return ResponseEntity.ok(metalTypes);
+        }
+    }
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getAllCategories() {
+        List<String> allCategories = productService.getAllCategories( );
+        if(allCategories.isEmpty()){
+            return ResponseEntity.badRequest().body(Collections.singletonList("No Categories found"));
+        }
+        else {
+            return ResponseEntity.ok(allCategories);
+        }
+    }
+
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        Product savedProduct = productRepository.save(product);
+        Product savedProduct = productService.saveProduct(product);
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 
+
+
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable String id, @RequestBody Product productDetails) {
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (optionalProduct.isPresent()) {
-            Product product = optionalProduct.get();
-
-            // Update ALL fields explicitly
-            product.setName(productDetails.getName());
-            product.setPrice(productDetails.getPrice());
-            product.setCategory(productDetails.getCategory());
-            product.setMetalType(productDetails.getMetalType());
-            product.setImage(productDetails.getImage());
-            product.setDescription(productDetails.getDescription());
-            product.setWeight(productDetails.getWeight()); // EXPLICITLY SET WEIGHT
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
 
 
-            Product savedProduct = productRepository.save(product);
+            Product savedProduct = productService.updateProduct(id,productDetails);
+if(savedProduct!=null){
 
 
             return ResponseEntity.ok(savedProduct);
@@ -104,12 +94,25 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteProduct(@PathVariable String id) {
-        if (productRepository.existsById(id)) {
-            productRepository.deleteById(id);
+    public ResponseEntity<HttpStatus> deleteProduct(@PathVariable Long id) {
+        boolean deleted=productService.deleteProduct(id);
+        if (deleted) {
+
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    @PutMapping("/photos")
+    public ResponseEntity<List<String>> uploadPhoto(@RequestParam("productID") Long productID,  @RequestParam("files") List<MultipartFile> files) {
+        return ResponseEntity.ok().body(productService.uploadPhoto(productID, files));
+    }
+
+
+
+    @GetMapping(path = "/image/{productID}/{filename}", produces = { IMAGE_PNG_VALUE, IMAGE_JPEG_VALUE })
+    public byte[] getPhoto(@PathVariable("productID") Long productID,@PathVariable("filename") String filename) throws IOException {
+        return Files.readAllBytes(Paths.get(PHOTO_DIRECTORY_PRODUCT + productID+"/"+filename));
+    }
+
 }

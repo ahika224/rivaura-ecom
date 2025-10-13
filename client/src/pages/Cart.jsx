@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { authFetch } from '../utils/authFetch';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -24,7 +25,7 @@ const Cart = () => {
 
     const fetchCart = async () => {
       try {
-        const res = await fetch(`/api/cart/${userId}`);
+        const res = await authFetch(`/api/cart/${userId}`);
         if (!res.ok) throw new Error('Failed to load cart');
 
         const cartData = await res.json();
@@ -33,10 +34,10 @@ const Cart = () => {
         // Process items with proper array indexing
         const items = await Promise.all(
           cartData.productIds
-            .filter(pid => pid && typeof pid === 'string' && pid.length > 0) // filter out bad ids
+            .filter(pid => Number.isInteger(pid) && pid > 0) // filter out bad ids
             .map(async (productId, index) => {
               try {
-                const productRes = await fetch(`/api/products/${productId}`);
+                const productRes = await authFetch(`/api/products/${productId}`);
                 if (!productRes.ok) throw new Error(`Product ${productId} not found`);
                 const product = await productRes.json();
 
@@ -84,7 +85,7 @@ const Cart = () => {
         return;
       }
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
+        const res = await authFetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
         if (res.ok) {
           const data = await res.json();
           setSearchResults(data.slice(0, 5)); // Limit to 5 results for dropdown
@@ -106,7 +107,7 @@ const Cart = () => {
       return;
     }
     try {
-      const res = await fetch(`/api/cart/update?userId=${userId}&productId=${productId}&quantity=${newQty}`, {
+      const res = await authFetch(`/api/cart/update?userId=${userId}&productId=${productId}&quantity=${newQty}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -131,7 +132,7 @@ const Cart = () => {
 
   const removeItem = async (productId, productName) => {
     try {
-      const res = await fetch(`/api/cart/remove?userId=${userId}&productId=${productId}`, {
+      const res = await authFetch(`/api/cart/remove?userId=${userId}&productId=${productId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -236,7 +237,7 @@ const Cart = () => {
               onClick={() => navigate('/collections')}
               className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-4 px-8 rounded-xl font-medium tracking-wider hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
-              Explore Collections
+              Diamond
             </button>
           </div>
         ) : (
@@ -282,7 +283,7 @@ const Cart = () => {
                             {item.grams} grams
                           </p>
                           <p className="text-lg font-semibold text-gray-900">
-                            ₹{item.finalPrice.toLocaleString()}
+                            ${item.finalPrice.toLocaleString()}
                           </p>
                         </div>
 
@@ -320,7 +321,7 @@ const Cart = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-600">Subtotal ({item.quantity} × {item.grams}g)</span>
                           <span className="text-lg font-semibold text-gray-900">
-                            ₹{item.itemTotal.toLocaleString()}
+                            ${item.itemTotal.toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -338,7 +339,7 @@ const Cart = () => {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({cartItems.length} items)</span>
-                    <span>₹{total.toLocaleString()}</span>
+                    <span>${total.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
@@ -347,7 +348,7 @@ const Cart = () => {
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-lg font-semibold text-gray-900">
                       <span>Total</span>
-                      <span>₹{total.toLocaleString()}</span>
+                      <span>${total.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

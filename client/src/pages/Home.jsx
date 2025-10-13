@@ -3,6 +3,7 @@ import { ShoppingBag, Heart, Search, Menu, X, Star, Phone, Mail } from "lucide-r
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import JewelryChatbot from './JewelryChatbot';
+import { authFetch } from "../utils/authFetch";
 
 const App = () => {
   const [products, setProducts] = useState([]);
@@ -61,33 +62,27 @@ const App = () => {
   // Style Categories
   const styleCategories = [
     {
-      id: 'traditional',
-      title: 'Traditional Heritage',
+      id: 'diamond',
+      title: 'Diamonds',
       description: 'Timeless pieces inspired by Indian craftsmanship',
       image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
       accent: 'from-amber-500 to-yellow-600'
     },
     {
-      id: 'contemporary',
-      title: 'Contemporary Chic',
+      id: 'gemstones',
+      title: 'Gem Stones',
       description: 'Modern designs for the modern woman',
       image: 'https://images.unsplash.com/photo-1723807105984-3fab5c225fd4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
       accent: 'from-purple-500 to-pink-600'
     },
     {
-      id: 'vintage',
-      title: 'Vintage Elegance',
+      id: 'jewellery',
+      title: 'Jewellery',
       description: 'Classic pieces with timeless appeal',
       image: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
       accent: 'from-rose-500 to-red-600'
     },
-    {
-      id: 'minimalist',
-      title: 'Minimalist Grace',
-      description: 'Subtle elegance for everyday luxury',
-      image: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-      accent: 'from-gray-500 to-slate-600'
-    }
+   
   ];
 
   // Carousel auto-slide effect
@@ -128,7 +123,7 @@ const App = () => {
         return;
       }
       try {
-        const res = await fetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
+        const res = await authFetch(`/api/products?search=${encodeURIComponent(searchInput)}`);
         if (res.ok) {
           const data = await res.json();
           setSearchResults(data.slice(0, 5)); // Limit to 5 results for dropdown
@@ -146,12 +141,12 @@ const App = () => {
   const loadFeaturedProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/products?featured=true&limit=8');
+      const res = await authFetch('/api/products?featured=true&limit=8');
       if (res.ok) {
         const data = await res.json();
         setFeaturedProducts(data);
       } else {
-        const fallbackRes = await fetch('/api/products?limit=8');
+        const fallbackRes = await authFetch('/api/products?limit=8');
         if (fallbackRes.ok) {
           const fallbackData = await fallbackRes.json();
           setFeaturedProducts(fallbackData);
@@ -174,7 +169,7 @@ const App = () => {
     if (metal) url += `metalType=${metal}&`;
 
     try {
-      const res = await fetch(url);
+      const res = await authFetch(url);
       if (res.ok) {
         let data = await res.json();
 
@@ -203,7 +198,7 @@ const App = () => {
     }
 
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `/api/cart/add?userId=${encodeURIComponent(userId)}&productId=${product.id || product._id}&quantity=1&grams=${product.grams || 1}&finalPrice=${product.price}`,
         {
           method: "POST",
@@ -460,7 +455,7 @@ const App = () => {
                   onClick={() => viewCategory(style.id)}
                   className="text-sm tracking-wider text-gray-700 hover:text-amber-600 transition-colors border-b border-transparent hover:border-amber-600 pb-1"
                 >
-                  EXPLORE COLLECTION
+                Explore  {style.title}
                 </button>
               </div>
             </div>
@@ -522,14 +517,14 @@ const App = () => {
                       <p className="text-xs text-gray-500">Weight: {product.weight}g</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <span className="text-xl font-medium text-gray-900">₹{product.price?.toLocaleString()} <span className="text-xs ml-2 text-gray-500">per gram</span></span>
+                          <span className="text-xl font-medium text-gray-900">${product.price?.toLocaleString()} <span className="text-xs ml-2 text-gray-500">per gram</span></span>
                           {product.originalPrice && product.originalPrice > product.price && (
-                            <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                            <span className="text-sm text-gray-500 line-through">${product.originalPrice.toLocaleString()}</span>
                           )}
                         </div>
                         {product.originalPrice && product.originalPrice > product.price && (
                           <span className="bg-red-100 text-red-600 px-2 py-1 text-xs font-medium rounded">
-                            SAVE ₹{(product.originalPrice - product.price).toLocaleString()}
+                            SAVE ${(product.originalPrice - product.price).toLocaleString()}
                           </span>
                         )}
                       </div>

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { authFetch } from '../utils/authFetch';
 
 const Category = () => {
   const { categoryName } = useParams();
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch(`/api/products?category=${categoryName}`)
+    authFetch(`/api/products?category=${categoryName}`)
       .then(res => res.json())
       .then(data => setProducts(data))
       .catch(err => console.error(err));
@@ -35,7 +36,7 @@ const Category = () => {
         accent: "from-purple-300 to-purple-400",
         accentText: "text-purple-400"
       },
-      bangle: {
+      gems: {
         title: "Graceful Bangle Collection",
         description: "Embrace the rhythmic beauty of our bangle collection, where tradition meets contemporary elegance. Each bangle is a circle of endless possibilities, designed to complement your every gesture with grace and sophistication. From sleek modern designs to intricate traditional patterns, our bangles celebrate the art of wrist adornment.",
         backgroundImage: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80",
@@ -101,52 +102,8 @@ const Category = () => {
         </div>
       </div>
 
-      {/* Article Content */}
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="bg-white rounded-lg shadow-lg p-8 md:p-12 -mt-24 relative z-20">
-          <p className="text-lg leading-relaxed text-gray-700 font-light mb-8 text-center">
-            {categoryContent.description}
-          </p>
-
-          <div className="text-center mb-12">
-            <div className="inline-block w-16 h-2 rounded-full bg-cover bg-center" style={{ backgroundImage: `url(${jewelryAccentImage})` }} />
-          </div>
-
-          {/* Collection Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 text-center">
-            <div className="p-6 relative">
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-10 rounded-lg"
-                style={{ backgroundImage: `url(${jewelryAccentImage})` }}
-              />
-              <div className="text-3xl font-light mb-2 text-gray-800 relative z-10">
-                {products.length}+
-              </div>
-              <p className="text-gray-600 font-light relative z-10">Unique Pieces</p>
-            </div>
-            <div className="p-6 relative">
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-10 rounded-lg"
-                style={{ backgroundImage: `url(${jewelryAccentImage})` }}
-              />
-              <div className="text-3xl font-light mb-2 text-gray-800 relative z-10">
-                100%
-              </div>
-              <p className="text-gray-600 font-light relative z-10">Handcrafted</p>
-            </div>
-            <div className="p-6 relative">
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-10 rounded-lg"
-                style={{ backgroundImage: `url(${jewelryAccentImage})` }}
-              />
-              <div className="text-3xl font-light mb-2 text-gray-800 relative z-10">
-                ∞
-              </div>
-              <p className="text-gray-600 font-light relative z-10">Timeless</p>
-            </div>
-          </div>
-        </div>
-      </div>
+     
+         
 
       {/* Products Section */}
       <div className="max-w-7xl mx-auto px-6 pb-16">
@@ -196,7 +153,7 @@ const Category = () => {
                         style={{ backgroundImage: `url(${jewelryAccentImage})` }}
                       />
                       <p className="text-xl font-light text-gray-800 relative z-10 px-2 py-1">
-                        ₹{product.price.toFixed(2)}
+                        ${product.price.toFixed(2)}
                       </p>
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">

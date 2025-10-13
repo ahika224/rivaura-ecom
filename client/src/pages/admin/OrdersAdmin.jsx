@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { authFetch } from '../../utils/authFetch';
 
 const OrdersAdmin = () => {
   // State for storing fetched orders
@@ -63,7 +64,7 @@ const OrdersAdmin = () => {
     const fetchOrders = async () => {
       setIsLoading(true); // Set loading to true before fetching
       try {
-        const res = await fetch("/api/orders");
+        const res = await authFetch("/api/orders");
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -150,7 +151,7 @@ const OrdersAdmin = () => {
                   <tr key={o.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4 whitespace-nowrap text-sm font-medium text-gray-900">{o.id}</td>
                     <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-700">{o.userId}</td>
-                    <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-700">₹{o.totalAmount.toFixed(2)}</td>
+                    <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-700">${o.totalAmount}</td>
                     <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-700">
                       {new Date(o.createdAt).toLocaleString()}
                     </td>
@@ -182,7 +183,9 @@ const OrdersAdmin = () => {
               <h3 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Order Details</h3>
               <p className="mb-2"><strong className="font-medium text-gray-700">Order ID:</strong> <span className="text-gray-900">{selectedOrder.id}</span></p>
               <p className="mb-2"><strong className="font-medium text-gray-700">User ID:</strong> <span className="text-gray-900">{selectedOrder.userId}</span></p>
-              <p className="mb-2"><strong className="font-medium text-gray-700">Total:</strong> <span className="text-gray-900">₹{selectedOrder.totalAmount.toFixed(2)}</span></p>
+              <p className="mb-2"><strong className="font-medium text-gray-700">Total:</strong> <span className="text-gray-900">${selectedOrder.totalAmount}</span></p>
+               <p className="mb-2"><strong className="font-medium text-gray-700">Is Paid:</strong> <span className="text-gray-900">${selectedOrder.paid}</span></p>
+
               <p className="mb-4"><strong className="font-medium text-gray-700">Created:</strong> <span className="text-gray-900">{new Date(selectedOrder.createdAt).toLocaleString()}</span></p>
               <h4 className="text-lg font-medium text-gray-800 mb-2">Products:</h4>
               <ul className="list-disc list-inside pl-4 mb-4 text-gray-700">

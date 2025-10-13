@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { authFetch } from "../../utils/authFetch";
 
 const UsersAdmin = () => {
   const [users, setUsers] = useState([]);
@@ -12,7 +13,7 @@ const UsersAdmin = () => {
   });
 
   useEffect(() => {
-    fetch("/api/users")
+    authFetch("/api/users")
       .then((res) => res.json())
       .then((data) => setUsers(data))
       .catch((err) => console.error(err));
@@ -20,7 +21,7 @@ const UsersAdmin = () => {
 
   const handleDelete = (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      fetch(`/api/users/${userId}`, { method: "DELETE" })
+      authFetch(`/api/users/${userId}`, { method: "DELETE" })
         .then(() => {
           setUsers(users.filter((u) => u.id !== userId));
         })
@@ -33,7 +34,7 @@ const UsersAdmin = () => {
   };
 
   const handleSaveEdit = () => {
-    fetch(`/api/users/${editingUser.id}`, {
+    authFetch(`/api/users/${editingUser.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editingUser),
@@ -47,7 +48,7 @@ const UsersAdmin = () => {
   };
 
   const handleAddUser = () => {
-    fetch("/api/users", {
+    authFetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser),

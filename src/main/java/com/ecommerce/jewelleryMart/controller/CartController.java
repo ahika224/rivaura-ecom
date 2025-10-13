@@ -54,7 +54,7 @@ public class CartController {
     @PostMapping("/add")
     public ResponseEntity<Cart> addToCart(
             @RequestParam String userId,
-            @RequestParam String productId,
+            @RequestParam Long productId,
             @RequestParam(defaultValue = "1") int quantity,
             @RequestParam(defaultValue = "1") double grams,
             @RequestParam double finalPrice) {
@@ -120,7 +120,7 @@ public class CartController {
         }
 
         Cart cart = optionalCart.get();
-        List<String> products = cart.getProductIds();
+        List<Long> products = cart.getProductIds();
         List<Integer> quantities = cart.getQuantities();
         List<Double> grams = cart.getGrams();
         List<Double> finalPrices = cart.getFinalPrices();
@@ -171,7 +171,7 @@ public class CartController {
         }
 
         Cart cart = optionalCart.get();
-        List<String> products = cart.getProductIds();
+        List<Long> products = cart.getProductIds();
         List<Integer> quantities = cart.getQuantities();
         List<Double> grams = cart.getGrams();
         List<Double> finalPrices = cart.getFinalPrices();

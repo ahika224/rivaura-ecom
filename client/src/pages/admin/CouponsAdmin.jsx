@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { authFetch } from "../../utils/authFetch";
 
 const CouponsAdmin = () => {
   const [coupons, setCoupons] = useState([]);
@@ -6,14 +7,14 @@ const CouponsAdmin = () => {
   const [editingCoupon, setEditingCoupon] = useState(null);
 
   useEffect(() => {
-    fetch("/api/coupons")
+    authFetch("/api/coupons")
       .then((res) => res.json())
       .then((data) => setCoupons(data))
       .catch(console.error);
   }, []);
 
   const handleAddCoupon = () => {
-    fetch("/api/coupons", {
+    authFetch("/api/coupons", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newCoupon),
@@ -28,7 +29,7 @@ const CouponsAdmin = () => {
 
   const handleDeleteCoupon = (code) => {
     if (window.confirm(`Delete coupon ${code}?`)) {
-      fetch(`/api/coupons/${code}`, { method: "DELETE" })
+      authFetch(`/api/coupons/${code}`, { method: "DELETE" })
         .then(() => {
           setCoupons(coupons.filter((c) => c.code !== code));
         })
@@ -37,7 +38,7 @@ const CouponsAdmin = () => {
   };
 
   const handleSaveEdit = () => {
-    fetch(`/api/coupons/${editingCoupon.code}`, {
+    authFetch(`/api/coupons/${editingCoupon.code}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editingCoupon),

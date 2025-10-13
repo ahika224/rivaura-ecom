@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Tag } from 'lucide-react';
+import { authFetch } from '../utils/authFetch';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Payment = () => {
     }
 
     // Fetch order summary
-    fetch(`/api/checkout/${userId}`)
+    authFetch(`/api/checkout/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (!data.items || data.items.length === 0) {
@@ -38,11 +39,11 @@ const Payment = () => {
 
   const applyCoupon = async () => {
     try {
-      const res = await fetch(`/api/coupons/apply?code=${couponCode}`);
+      const res = await authFetch(`/api/coupons/apply?code=${couponCode}`);
       const data = await res.json();
       if (res.ok) {
         setDiscount(data.discountAmount);
-        setMessage(`Coupon applied: ₹${data.discountAmount.toLocaleString()} off`);
+        setMessage(`Coupon applied: $${data.discountAmount.toLocaleString()} off`);
       } else {
         setDiscount(0);
         setMessage('Invalid coupon.');
@@ -62,7 +63,7 @@ const Payment = () => {
     }
 
     try {
-      const res = await fetch('/api/checkout/confirm-payment', {
+      const res = await authFetch('/api/checkout/confirm-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, delivery, discount }),
@@ -125,7 +126,7 @@ const Payment = () => {
               </div>
               <p className="text-sm text-gray-600 mb-4">
                 Scan the QR code using your preferred payment app to complete your purchase. Ensure the payment
-                amount matches your order total (₹{finalTotal.toLocaleString()}). Once paid, click "I Have Paid" to confirm.
+                amount matches your order total (${finalTotal.toLocaleString()}). Once paid, click "I Have Paid" to confirm.
               </p>
               <div className="mt-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-3">Need Help?</h3>
@@ -206,21 +207,21 @@ const Payment = () => {
                         <p className="font-medium text-gray-900">{item.productName}</p>
                         <p>Quantity: {item.quantity}</p>
                       </div>
-                      <p className="text-amber-600">₹{item.itemTotal.toLocaleString()}</p>
+                      <p className="text-amber-600">${item.itemTotal.toLocaleString()}</p>
                     </div>
                   ))}
                   <div className="space-y-3 text-sm text-gray-600 pt-4">
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span className="text-amber-600">₹{summary.totalAmount.toLocaleString()}</span>
+                      <span className="text-amber-600">${summary.totalAmount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Discount</span>
-                      <span className="text-amber-600">₹{discount.toLocaleString()}</span>
+                      <span className="text-amber-600">${discount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between font-medium pt-2 border-t border-gray-100">
                       <span>Total</span>
-                      <span className="text-amber-600">₹{finalTotal.toLocaleString()}</span>
+                      <span className="text-amber-600">${finalTotal.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

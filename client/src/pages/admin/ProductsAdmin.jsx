@@ -1,4 +1,7 @@
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { authFetch } from '../../utils/authFetch';
 
 const ProductsAdmin = () => {
   const [products, setProducts] = useState([]);
@@ -10,20 +13,60 @@ const ProductsAdmin = () => {
     price: "",
     category: "",
     metalType: "",
-    image: "",
+    images: [],
     description: "",
-    weight: ""
+    weight: "",
+    quantity: "",
   });
+  const [images, setImages] = useState([]);
+  const [preview, setPreview] = useState([]);
 
+  const [message, setMessage] = useState("");
+
+  // Handle multiple file selection
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setImages(files);
+
+    // preview images
+    const previewUrls = files.map(file => URL.createObjectURL(file));
+    setPreview(previewUrls);
+  };
+
+  // Upload images to backend
+  const handleUpload = async (id) => {
+    if (images.length === 0) {
+      setMessage("Please select images first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('productID',id );
+  images.forEach((image) => {
+      formData.append('files',image, image.name);
+    });
+    
+
+
+    try {
+      const res = await axios.put("/api/products/photos", formData);
+
+      setMessage("Uploaded successfully: " + res.data.uploaded.join(", "));
+    } catch (err) {
+      setMessage("Error uploading files: " + err.message);
+    }
+  };
   // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch('/api/products');
+        const res = await authFetch('/api/products');
         if (!res.ok) throw new Error('Failed to load products');
         const data = await res.json();
-        console.log('Fetched products:', data); // Debug: Log fetched products
+        console.log('Fetched products:', data);
+       
+     // Debug: Log fetched products
         setProducts(data);
       } catch (err) {
         setError(err.message);
@@ -43,7 +86,7 @@ const ProductsAdmin = () => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const res = await fetch(`/api/products/${productId}`, {
+      const res = await authFetch(`/api/products/${productId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -78,7 +121,7 @@ const ProductsAdmin = () => {
         weight: parsedWeight
       };
       console.log('Creating product:', requestBody); // Debug: Log request body
-      const res = await fetch('/api/products', {
+      const res = await authFetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -87,16 +130,19 @@ const ProductsAdmin = () => {
       if (!res.ok) throw new Error('Failed to create product');
 
       const createdProduct = await res.json();
-      console.log('Created product:', createdProduct); // Debug: Log response
+      console.log('Created product:', createdProduct); 
+      handleUpload(createdProduct._id || createdProduct.id);
+      // Debug: Log response
       setProducts([...products, createdProduct]);
       setNewProduct({
         name: "",
         price: "",
         category: "",
         metalType: "",
-        image: "",
+        images: "",
         description: "",
-        weight: ""
+        weight: "",
+        quantity: "",
       });
       alert('Product created successfully');
     } catch (err) {
@@ -136,7 +182,7 @@ const ProductsAdmin = () => {
       console.log('Updating product:', requestBody); // Debug: Log request body
       console.log('Product ID:', productId); // Debug: Log product ID
 
-      const res = await fetch(`/api/products/${productId}`, {
+      const res = await authFetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -169,6 +215,7 @@ const ProductsAdmin = () => {
             <tr style={{ backgroundColor: '#f5f5f5' }}>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Name</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Price per gram</th>
+              <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Quantity</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Weight (g)</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Metal</th>
               <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Category</th>
@@ -179,7 +226,8 @@ const ProductsAdmin = () => {
             {products.map(product => (
               <tr key={getProductId(product)} style={{ borderBottom: '1px solid #ddd' }}>
                 <td style={{ padding: '12px' }}>{product.name}</td>
-                <td style={{ padding: '12px' }}>₹{product.price?.toFixed(2)}</td>
+                <td style={{ padding: '12px' }}>${product.price?.toFixed(2)}</td>
+                <td style={{ padding: '12px' }}>{product.quantity}</td>
                 <td style={{ padding: '12px' }}>{product.weight?.toFixed(2) || '-'}</td>
                 <td style={{ padding: '12px' }}>{product.metalType || '-'}</td>
                 <td style={{ padding: '12px' }}>{product.category || '-'}</td>
@@ -188,7 +236,8 @@ const ProductsAdmin = () => {
                     onClick={() => setEditProduct({
                       ...product,
                       price: String(product.price),
-                      weight: String(product.weight)
+                      weight: String(product.weight),
+                      images: product.images || [],
                     })}
                     style={{
                       padding: '6px 12px',
@@ -247,7 +296,16 @@ const ProductsAdmin = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Price per gram (₹):</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Quantity :</label>
+              <input
+                type="number"
+                value={newProduct.quantity}
+                onChange={e => setNewProduct({ ...newProduct, quantity: e.target.value })}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Price per gram ($):</label>
               <input
                 type="number"
                 value={newProduct.price}
@@ -284,14 +342,24 @@ const ProductsAdmin = () => {
               />
             </div>
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Image URL:</label>
-              <input
-                value={newProduct.image}
-                onChange={e => setNewProduct({ ...newProduct, image: e.target.value })}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-              />
-            </div>
+         <div >
+      <h2>Upload Multiple Images</h2>
+     
+      <input id="fileInput" type="file" multiple accept="image/*" onChange={handleFileChange} style={{ display: "none" }} />
+        <label
+        htmlFor="fileInput"
+        className="px-4 py-1 bg-green-500 text-white rounded-lg cursor-pointer hover:bg-green-600"
+      >
+        Choose Files
+      </label>
+      <div className="flex gap-2 mt-2">
+        {preview.map((src, idx) => (
+          <img key={idx} src={src} alt="preview" width={80} height={80} />
+        ))}
+      </div>
+
+     
+      </div>
 
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Description:</label>
@@ -339,9 +407,17 @@ const ProductsAdmin = () => {
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
                 />
               </div>
-
+<div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Quantity :</label>
+              <input
+                type="number"
+                value={editProduct.quantity}
+                onChange={e => setEditProduct({ ...editProduct, quantity: e.target.value })}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+              />
+            </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Price per gram (₹):</label>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Price per gram ($):</label>
                 <input
                   type="number"
                   value={editProduct.price}
@@ -378,14 +454,24 @@ const ProductsAdmin = () => {
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Image URL:</label>
-                <input
-                  value={editProduct.image}
-                  onChange={e => setEditProduct({ ...editProduct, image: e.target.value })}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
-              </div>
+             <div >
+      <h2>Upload Multiple Images</h2>
+     
+      <input id="fileInput" type="file" multiple accept="image/*" onChange={handleFileChange} style={{ display: "none" }} />
+        <label
+        htmlFor="fileInput"
+        className="px-4 py-1 bg-green-500 text-white rounded-lg cursor-pointer hover:bg-green-600"
+      >
+        Choose Files
+      </label>
+      <div className="flex gap-2 mt-2">
+        {editProduct.images.map((src, idx) => (
+          <img key={idx} src={src} alt="preview" width={80} height={80} />
+        ))}
+      </div>
+
+     
+      </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Description:</label>

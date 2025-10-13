@@ -30,7 +30,7 @@ public class CouponController {
 
     @PostMapping
     public ResponseEntity<Coupon> createCoupon(@RequestBody Coupon coupon) {
-        if (couponRepository.existsById(coupon.getCode())) {
+        if (couponRepository.existsById(String.valueOf(coupon.getCode()))) {
             return ResponseEntity.badRequest().body(null);
         }
         Coupon saved = couponRepository.save(coupon);
